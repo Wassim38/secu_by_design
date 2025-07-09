@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification 2FA - TestVault App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        :root { --primary-color: #007bff; --primary-hover: #0056b3; --dark-text: #333; --light-text: #f8f9fa; --background-color: #f4f7f6; --container-bg: #ffffff; --border-color: #dee2e6; --error-bg: #f8d7da; --error-text: #721c24; --error-border: #f5c6cb; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--background-color); color: var(--dark-text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 500px; background: var(--container-bg); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        h1 { color: var(--primary-hover); margin-bottom: 25px; text-align: center; font-weight: 700; }
+        p { text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); }
+        .btn { display: block; width: 100%; padding: 12px; background-color: var(--primary-color); color: var(--light-text); border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; transition: background-color 0.2s; }
+        .btn:hover { background-color: var(--primary-hover); }
+        .mt-3 { margin-top: 20px; }
+        .flashes { list-style: none; padding: 0; margin-bottom: 20px; }
+        .flash { padding: 15px; border-radius: 4px; border: 1px solid var(--error-border); color: var(--error-text); background-color: var(--error-bg); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vérification 2FA</h1>
+        <p>Veuillez entrer le code à 6 chiffres de votre application d'authentification.</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class=flashes>
+            {% for message in messages %}
+              <li class="flash">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('verify_2fa') }}" class="mt-3">
+            <!-- CHAMPS ANTI-REJEU CACHÉS -->
+            <input type="hidden" name="nonce" value="{{ nonce }}">
+            <input type="hidden" name="timestamp" value="{{ timestamp }}">
+
+            <div class="form-group">
+                <label for="token">Code 2FA</label>
+                <input type="text" id="token" name="token" class="form-control" required autofocus autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*" style="text-align: center; font-size: 1.2em; letter-spacing: 5px;">
+            </div>
+            <button type="submit" class="btn">Vérifier</button>
+        </form>
+    </div>
+</body>
+</html>

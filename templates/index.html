@@ -1,14 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Liste des livres</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - TestVault App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        :root { --primary-color: #007bff; --primary-hover: #0056b3; --dark-text: #333; --light-text: #f8f9fa; --background-color: #f4f7f6; --container-bg: #ffffff; --border-color: #dee2e6; --success-bg: #d4edda; --success-text: #155724; --success-border: #c3e6cb;}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Roboto', sans-serif; background-color: var(--background-color); color: var(--dark-text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 600px; background: var(--container-bg); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        h1 { color: var(--primary-hover); margin-bottom: 25px; text-align: center; font-weight: 700; }
+        a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+        .flash.success { padding: 15px; border-radius: 4px; border: 1px solid var(--success-border); color: var(--success-text); background-color: var(--success-bg); margin-bottom: 20px; }
+        .header-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px; background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 20px; }
+        .book-list { list-style: none; padding: 0; margin-top: 20px; }
+        .book-list li { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        .book-list li:last-child { border-bottom: none; }
+    </style>
 </head>
 <body>
-    <h1>Liste des livres</h1>
-    <ul>
-    {% for livre in livres %}
-        <li>{{ livre[0] }}: {{ livre[1] }}</li>
-    {% endfor %}
-    </ul>
+    <div class="container">
+        <div class="header-nav">
+            <span>Connecté en tant que: <strong>{{ user.username }}</strong></span>
+            <a href="{{ url_for('logout') }}">Déconnexion</a>
+        </div>
+
+        <h1>Liste des livres</h1>
+
+        {% if not user.otp_secret %}
+            <div class="flash success">
+                <strong>Sécurité :</strong> Votre compte n'est pas protégé par la double authentification. 
+                <a href="{{ url_for('setup_2fa') }}">Activer le 2FA maintenant</a>.
+            </div>
+        {% endif %}
+
+        <ul class="book-list">
+            {% for livre in livres %}
+                <li><strong>ID {{ livre[0] }}:</strong> {{ livre[1] }}</li>
+            {% else %}
+                <li>Aucun livre trouvé dans la base de données.</li>
+            {% endfor %}
+        </ul>
+    </div>
 </body>
 </html>

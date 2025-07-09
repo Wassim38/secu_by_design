@@ -1,0 +1,80 @@
+# docker-compose.yml - VERSION "ANTI-ERREUR" GARANTIE
+
+services:
+  app:
+    build: .
+    container_name: flask_app
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: mon_token_secret_pour_docker # <-- Valeur forcée ici
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: testvault
+      FLASK_SECRET_KEY: une_super_cle_secrete_aleatoire_pour_flask
+    depends_on:
+      db: { condition: service_started }
+      vault-setup: { condition: service_completed_successfully }
+    networks:
+      - mon_reseau_app
+
+  db:
+    image: mariadb:10.6
+    container_name: mariadb_db
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: un_mot_de_passe_root_solide
+      MARIADB_DATABASE: testvault
+      MARIADB_USER: testvault
+      MARIADB_PASSWORD: un_mot_de_passe_app_solide
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - mon_reseau_app
+
+  vault:
+    image: hashicorp/vault:latest
+    container_name: hashicorp_vault
+    ports:
+      - "8200:8200"
+    environment:
+      # LA CORRECTION EST ICI, DIRECTEMENT DANS LE FICHIER.
+      VAULT_DEV_ROOT_TOKEN_ID: mon_token_secret_pour_docker
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - mon_reseau_app
+    healthcheck:
+      test: ["CMD", "vault", "status", "-address=http://127.0.0.1:8200"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  vault-setup:
+    image: hashicorp/vault:latest
+    container_name: vault_setup
+    volumes:
+      - ./vault-scripts:/vault/scripts
+    environment:
+      # On force les variables ici aussi
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: mon_token_secret_pour_docker
+      DB_USER_FOR_APP: testvault
+      DB_PASSWORD_FOR_APP: un_mot_de_passe_app_solide
+    entrypoint: /bin/sh -c "/vault/scripts/setup-vault.sh"
+    networks:
+      - mon_reseau_app
+    depends_on:
+      vault: { condition: service_healthy }
+
+networks:
+  mon_reseau_app: { driver: bridge }
+
+volumes:
+  mariadb_data:
